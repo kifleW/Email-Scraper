@@ -1,7 +1,7 @@
 Make sure you have python, npm, and pip installed.
 
 Then install the packages below using pip:
-  1.selanium
+  1.selenium
   2.requests
 
 Install the web-client phantomjs using npm. Make sure your path is correctly set
