@@ -12,7 +12,7 @@ def crawl(domain):
     #In general an url to access a web page will look this:http://domain[path]
     #I have decided to not include sub-domains and websites that are outside the current domain
     #This pattern will help distinguish between relative and absolute urls
-    urlPattern = r"https?://.*"+ domain
+    urlPattern = r"https?://"+ domain
     urlRegex = re.compile(urlPattern)
 
     httpPattern = r"https?://"
@@ -47,8 +47,8 @@ def crawl(domain):
     try:
         #if you would like a visual of the web crawler doing its job and firefox is installed,
         #uncomment the line below and comment out the phantomjs line
-        #browser = webdriver.Firefox()
-        browser = webdriver.PhantomJS()
+        browser = webdriver.Firefox()
+        #browser = webdriver.PhantomJS()
     except:
         print "Error creating browser environment."
         return emailAddresses
@@ -85,10 +85,15 @@ def helperCrawl(url,nextUrls,visitedUrls,urlRegex,httpRegex,emailRegex,browser):
 
     currentUrl= response.url
 
-    #we add the url again just in case of a potential redirect
-    visitedUrls.add(currentUrl)
+    #in case of redirect to a different domain
+    if not urlRegex.match(currentUrl):
+        return emailAddresses
 
-    browser.get(currentUrl)
+    try:
+        browser.get(currentUrl)
+    except:
+        return emailAddresses
+
     content = browser.page_source
 
     newEmails = collectEmailAddresses(content,emailRegex)
@@ -133,11 +138,14 @@ def helperCrawl(url,nextUrls,visitedUrls,urlRegex,httpRegex,emailRegex,browser):
         if linkedUrl != None:
             httpMatch = httpRegex.match(linkedUrl)
             nonHttpPortion = linkedUrl[httpMatch.end():]
-            if nonHttpPortion not in visitedUrls:
-                nextUrls.add("http://"+ nonHttpPortion)
-                visitedUrls.add("http://"+ nonHttpPortion)
-                nextUrls.add("https://"+ nonHttpPortion)
-                visitedUrls.add("https://"+ nonHttpPortion)
+            httpUrl = "http://" + nonHttpPortion
+            httpsUrl = "https://"+ nonHttpPortion
+            if httpUrl not in visitedUrls:
+                nextUrls.add(httpUrl)
+                visitedUrls.add(httpUrl)
+            if httpsUrl not in visitedUrls:
+                nextUrls.add(httpsUrl)
+                visitedUrls.add(httpsUrl)
 
     return emailAddresses
 
